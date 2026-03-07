@@ -1,78 +1,500 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>apps</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 40px;
-            background: #f5f5f5;
-            color: #333;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oefi — projects</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ── variables ──────────────────────────────── */
+    :root {
+      --bg:        #0a0a0a;
+      --surface:   #141414;
+      --border:    #252525;
+      --text:      #e8e4dc;
+      --muted:     #666;
+      --dnd:       #d4a017;
+      --ski:       #4ecdc4;
+      --tool:      #ff6b6b;
+      --dnd-dim:   #3a2c06;
+      --ski-dim:   #0e3533;
+      --tool-dim:  #3a1212;
+    }
 
-        h1 {
-            margin-bottom: 10px;
-        }
+    /* ── reset / base ───────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .container {
-            max-width: 600px;
-            margin: auto;
-        }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier Prime', monospace;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      /* subtle grain */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
 
-        .project-list {
-            margin-top: 30px;
-        }
+    a { color: inherit; text-decoration: none; }
+    a:hover { text-decoration: none; }
 
-        .project {
-            background: white;
-            padding: 15px 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
+    /* ── layout wrapper ─────────────────────────── */
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
 
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
+    /* ── header ─────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 40px 0 28px;
+    }
 
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    .header-inner {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.4rem, 6vw, 3.6rem);
+      letter-spacing: 0.06em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .logo span {
+      color: var(--ski);
+    }
+
+    .header-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .header-meta a {
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .header-meta a:hover { color: var(--text); border-color: var(--text); }
+
+    /* ── filter bar ─────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 28px 0 24px;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+
+    .filter-btn.active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+
+    .filter-btn[data-cat="dnd"].active   { background: var(--dnd);  border-color: var(--dnd);  color: #000; }
+    .filter-btn[data-cat="ski"].active   { background: var(--ski);  border-color: var(--ski);  color: #000; }
+    .filter-btn[data-cat="tool"].active  { background: var(--tool); border-color: var(--tool); color: #000; }
+
+    /* ── count ──────────────────────────────────── */
+    .project-count {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    /* ── grid ───────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      padding-bottom: 60px;
+    }
+
+    /* ── card ───────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      transition: opacity 0.2s;
+      opacity: 0.5;
+    }
+
+    .card[data-cat="dnd"]::before  { background: var(--dnd); }
+    .card[data-cat="ski"]::before  { background: var(--ski); }
+    .card[data-cat="tool"]::before { background: var(--tool); }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    .card[data-cat="dnd"]:hover  { border-color: var(--dnd);  box-shadow: 0 12px 40px rgba(212,160,23,0.12); }
+    .card[data-cat="ski"]:hover  { border-color: var(--ski);  box-shadow: 0 12px 40px rgba(78,205,196,0.12); }
+    .card[data-cat="tool"]:hover { border-color: var(--tool); box-shadow: 0 12px 40px rgba(255,107,107,0.12); }
+
+    .card.hidden {
+      display: none;
+    }
+
+    /* category badge */
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 2px;
+      font-weight: 700;
+      align-self: flex-start;
+    }
+
+    .card[data-cat="dnd"]  .badge { background: var(--dnd-dim);  color: var(--dnd); }
+    .card[data-cat="ski"]  .badge { background: var(--ski-dim);  color: var(--ski); }
+    .card[data-cat="tool"] .badge { background: var(--tool-dim); color: var(--tool); }
+
+    /* title */
+    .card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.45rem;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    /* description */
+    .card-desc {
+      font-size: 0.85rem;
+      color: #aaa;
+      line-height: 1.55;
+      flex: 1;
+    }
+
+    /* tags */
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: #1e1e1e;
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    /* links */
+    .card-links {
+      display: flex;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      border-radius: 2px;
+      border: 1px solid;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+    }
+
+    .btn-live {
+      border-color: var(--text);
+      color: var(--text);
+      background: transparent;
+    }
+
+    .btn-live:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .btn-gh {
+      border-color: var(--border);
+      color: var(--muted);
+      background: transparent;
+    }
+
+    .btn-gh:hover {
+      border-color: var(--muted);
+      color: var(--text);
+    }
+
+    /* no live = ghost live btn */
+    .btn-live.disabled {
+      border-color: var(--border);
+      color: var(--muted);
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    /* ── footer ─────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 0;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    footer a { color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 1px; }
+    footer a:hover { color: var(--text); border-color: var(--text); }
+
+    /* ── responsive ─────────────────────────────── */
+    @media (max-width: 520px) {
+      .wrap { padding: 0 16px; }
+      .grid { grid-template-columns: 1fr; }
+      .header-inner { flex-direction: column; gap: 6px; }
+    }
+
+    /* ── fade-in on load ────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.05s; }
+    .card:nth-child(2) { animation-delay: 0.10s; }
+    .card:nth-child(3) { animation-delay: 0.15s; }
+    .card:nth-child(4) { animation-delay: 0.20s; }
+    .card:nth-child(5) { animation-delay: 0.25s; }
+    .card:nth-child(6) { animation-delay: 0.30s; }
+  </style>
 </head>
 <body>
-    <div class="container">
 
+<div class="wrap">
 
-        <div class="project-list">
-            <div class="project">
-                <h2>Ski Radius Geometry Calculator</h2>
-                <a href="https://oefi.github.io/ski-radius-calculator/">Ski Radius Calculator</a>
-            </div>
-            <div class="project">
-                <h2>Ski Camber Issues</h2>
-                <a href="https://oefi.github.io/ski-camber-physics/">Ski Camber Issues</a>
-            </div>
-
-            <div class="project">
-                <h2>The Clockwork Menace of Oakhaven (a complete, self-contained DND 5E adventure featuring a combat tracker)</h2>
-                <a href="https://oefi.github.io/DND5E-Adventure-The-Clockwork-Menace-of-Oakhaven/">The Clockwork Menace of Oakhaven</a>
-            </div>
-
-            <div class="project">
-                <h2>D&D 5e DPR Calculator (2024 Edition)</h2>
-                <a href="https://oefi.github.io/DND-5E-Damage-Per-Round-Calculator/">DND-5E-Damage-Per-Round-Calculator</a>
-            </div>
-        </div>
+  <!-- header -->
+  <header>
+    <div class="header-inner">
+      <div class="logo">oefi<span>.</span>github<span>.</span>io</div>
+      <div class="header-meta">
+        <a href="https://github.com/oefi" target="_blank" rel="noopener">↗ github.com/oefi</a>
+      </div>
     </div>
+  </header>
+
+  <!-- filter bar -->
+  <div class="filter-bar" role="group" aria-label="Filter projects by category">
+    <button class="filter-btn active" data-cat="all">All <span id="cnt-all"></span></button>
+    <button class="filter-btn" data-cat="dnd">⚔️ D&amp;D</button>
+    <button class="filter-btn" data-cat="ski">🎿 Skiing</button>
+    <button class="filter-btn" data-cat="tool">🔧 Tools</button>
+  </div>
+
+  <div class="project-count" id="project-count"></div>
+
+  <!-- project grid -->
+  <main class="grid" id="grid">
+
+    <!-- D&D: DPR Calculator -->
+    <article class="card" data-cat="dnd">
+      <span class="badge">D&amp;D 5e</span>
+      <h2 class="card-title">DPR Calculator<br>2024 Edition</h2>
+      <p class="card-desc">Real-time, visual Damage Per Round simulator featuring drag-and-drop dice, multi-round configurations, and live formula breakdowns. Because theorycrafting should show its work.</p>
+      <div class="tags">
+        <span class="tag">Drag &amp; Drop</span>
+        <span class="tag">5e 2024</span>
+        <span class="tag">Live Formulas</span>
+        <span class="tag">HTML</span>
+      </div>
+      <div class="card-links">
+        <a class="btn btn-live" href="https://oefi.github.io/dnd5e-dpr-calc/" target="_blank" rel="noopener">↗ Live</a>
+        <a class="btn btn-gh" href="https://github.com/oefi/dnd5e-dpr-calc" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+    <!-- D&D: Clockwork Menace -->
+    <article class="card" data-cat="dnd">
+      <span class="badge">D&amp;D 5e</span>
+      <h2 class="card-title">The Clockwork Menace of Oakhaven</h2>
+      <p class="card-desc">Complete, self-contained 5e (2024 Rules) one-shot designed for a 3-hour session. Fully integrated vanilla JS combat tracker included. Oakhaven's survival is not guaranteed.</p>
+      <div class="tags">
+        <span class="tag">One-Shot</span>
+        <span class="tag">Combat Tracker</span>
+        <span class="tag">Vanilla JS</span>
+        <span class="tag">HTML</span>
+      </div>
+      <div class="card-links">
+        <a class="btn btn-live" href="https://oefi.github.io/dnd5e-adventure-the-clockwork-menace-of-oakhaven/" target="_blank" rel="noopener">↗ Live</a>
+        <a class="btn btn-gh" href="https://github.com/oefi/dnd5e-adventure-the-clockwork-menace-of-oakhaven" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+    <!-- Ski: Radius Calculator -->
+    <article class="card" data-cat="ski">
+      <span class="badge">Skiing</span>
+      <h2 class="card-title">Ski Turn Radius Calculator</h2>
+      <p class="card-desc">Lightweight, interactive visualization of real-world ski turn radius using effective edge logic. The math your boot fitter waves hands about, actually worked out.</p>
+      <div class="tags">
+        <span class="tag">Edge Logic</span>
+        <span class="tag">Interactive</span>
+        <span class="tag">Visualization</span>
+        <span class="tag">HTML</span>
+      </div>
+      <div class="card-links">
+        <a class="btn btn-live" href="https://oefi.github.io/ski-radius-calculator/" target="_blank" rel="noopener">↗ Live</a>
+        <a class="btn btn-gh" href="https://github.com/oefi/ski-radius-calculator" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+    <!-- Ski: Camber Physics -->
+    <article class="card" data-cat="ski">
+      <span class="badge">Skiing</span>
+      <h2 class="card-title">Ski Camber Physics</h2>
+      <p class="card-desc">Physics-based analysis of ski composite mechanics, camber degradation, and viscoelastic relaxation. Zero marketing fluff. 100% material science.</p>
+      <div class="tags">
+        <span class="tag">Composite Mechanics</span>
+        <span class="tag">Viscoelastic</span>
+        <span class="tag">Interactive</span>
+        <span class="tag">HTML</span>
+      </div>
+      <div class="card-links">
+        <a class="btn btn-live" href="https://oefi.github.io/ski-camber-physics/" target="_blank" rel="noopener">↗ Live</a>
+        <a class="btn btn-gh" href="https://github.com/oefi/ski-camber-physics" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+    <!-- Tool: Media Runtime Comparator -->
+    <article class="card" data-cat="tool">
+      <span class="badge">Tool</span>
+      <h2 class="card-title">Media Runtime Comparator</h2>
+      <p class="card-desc">PowerShell GUI that scans video and audio files, compares runtimes, and detects duplicates via ffprobe. Desktop tool — no browser, no nonsense.</p>
+      <div class="tags">
+        <span class="tag">PowerShell</span>
+        <span class="tag">ffprobe</span>
+        <span class="tag">Duplicate Detection</span>
+        <span class="tag">Desktop</span>
+      </div>
+      <div class="card-links">
+        <a class="btn btn-live disabled" aria-disabled="true">Desktop app</a>
+        <a class="btn btn-gh" href="https://github.com/oefi/MediaRuntimeComparator" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+    <!-- Tool: Finger Altar -->
+    <article class="card" data-cat="tool">
+      <span class="badge">Tool</span>
+      <h2 class="card-title">Finger Altar</h2>
+      <p class="card-desc">Who goes first? Everyone places a finger. One is chosen. Single-file board-game ritual — no install, no backend, no survivors of the selection ceremony.</p>
+      <div class="tags">
+        <span class="tag">Party Game</span>
+        <span class="tag">Single File</span>
+        <span class="tag">No Backend</span>
+        <span class="tag">HTML</span>
+      </div>
+      <div class="card-links">
+        <a class="btn btn-live" href="https://oefi.github.io/finger_altar/" target="_blank" rel="noopener">↗ Live</a>
+        <a class="btn btn-gh" href="https://github.com/oefi/finger_altar" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+  </main>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="wrap">
+    <a href="https://github.com/oefi" target="_blank" rel="noopener">github.com/oefi</a>
+    &nbsp;·&nbsp; built with html and opinions
+  </div>
+</footer>
+
+<script>
+  const cards = document.querySelectorAll('.card');
+  const buttons = document.querySelectorAll('.filter-btn');
+  const countEl = document.getElementById('project-count');
+
+  function updateCount(visible) {
+    countEl.textContent = visible + ' project' + (visible !== 1 ? 's' : '');
+  }
+
+  function filter(cat) {
+    let count = 0;
+    cards.forEach(card => {
+      const show = cat === 'all' || card.dataset.cat === cat;
+      card.classList.toggle('hidden', !show);
+      if (show) count++;
+    });
+    updateCount(count);
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filter(btn.dataset.cat);
+    });
+  });
+
+  // init count
+  updateCount(cards.length);
+</script>
+
 </body>
-
 </html>
-
-
-
-
